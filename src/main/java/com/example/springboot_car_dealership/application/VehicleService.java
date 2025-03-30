@@ -50,21 +50,14 @@ public class VehicleService {
 
     public VehicleDTO saveVehicle(VehicleDTO vehicleDTO) {
 
-        Optional<Vehicle> existingVehicle = vehicleRepository.findByLicensePlate(vehicleDTO.getLicensePlate());
+        validateDuplicateLicensePlate(vehicleDTO.getLicensePlate()); //Valida patentes duplicadas
 
-        if (existingVehicle.isPresent()) {
-            throw new DuplicateResourceException("Ya existe un vehículo con la patente: " + vehicleDTO.getLicensePlate());
-        }
-        Vehicle vehicle = vehicleMapper.toEntity(vehicleDTO);
-        if (vehicle.getKilometers() < 0){
-            throw new InvalidVehicleStateException("Ingrese un kilometraje valido.");
-        }
-        if (vehicle.getKilometers() > 0 && vehicle.isNew()) {
-            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
-        }
-        if (vehicle.getKilometers() == 0 && !vehicle.isNew()) {
-            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
-        }
+        Vehicle vehicle = vehicleMapper.toEntity(vehicleDTO); //Transforma de Vehiculo DTO a Vehiculo Entity JPA
+
+        validateKilometers(vehicle); //Valida los kilometros
+
+        validateVehicleState(vehicle); //Valida el estado del auto dependiendo de los kilometros
+
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDTO(savedVehicle);
     }
@@ -79,5 +72,29 @@ public class VehicleService {
         return vehicles.stream()
                 .map(vehicleMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    //Funciones SRP
+
+    public void validateDuplicateLicensePlate(String licensePlate){
+        if (vehicleRepository.findByLicensePlate(licensePlate).isPresent()){
+            throw new DuplicateResourceException("Ya existe un vehículo con la patente: " + licensePlate);
+        }
+    }
+
+    public void validateKilometers(Vehicle vehicle){
+        if (vehicle.getKilometers() < 0) {
+            throw new InvalidVehicleStateException("Ingrese un kilometraje válido.");
+        }
+    }
+
+    private void validateVehicleState(Vehicle vehicle) {
+        if (vehicle.getKilometers() > 0 && vehicle.isNew()) {
+            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
+        }
+
+        if (vehicle.getKilometers() == 0 && !vehicle.isNew()) {
+            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
+        }
     }
 }
