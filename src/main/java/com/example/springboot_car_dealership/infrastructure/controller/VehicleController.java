@@ -39,6 +39,32 @@ public class VehicleController {
         );
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<VehicleDTO>> getVehiclesByBrandAndIsNew(
+            @RequestParam(required = true) String brand,
+            @RequestParam(required = true) Boolean isNew){
+
+
+        List<VehicleDTO> vehicles = vehicleService.searchVehicle(brand, isNew);
+
+        if (vehicles.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron vehiculos con los filtros proporcionados.");
+        }
+
+        return ResponseEntity.ok(vehicles);
+    }
+
+    @GetMapping("/getVehicleByBrand/{brand}")
+    public ResponseEntity<List<VehicleDTO>> getVehiclesByBrand(@PathVariable String brand){
+        List<VehicleDTO> vehicles = vehicleService.getVehiclesByBrand(brand);
+
+        if (vehicles.isEmpty()){
+            throw new ResourceNotFoundException("No se encontraron vehiculos de la marca " + brand);
+        }
+
+        return ResponseEntity.ok(vehicles);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<VehicleDTO> createVehicle(@Valid @RequestBody VehicleDTO vehicleDTO) {
         VehicleDTO savedVehicle = vehicleService.saveVehicle(vehicleDTO);

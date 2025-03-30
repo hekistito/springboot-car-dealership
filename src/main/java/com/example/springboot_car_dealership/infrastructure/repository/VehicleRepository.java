@@ -9,9 +9,10 @@ import java.util.List;
 @Repository // Indica que es un repositorio JPA y que accede a la base de datos
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {  //JpaRepository --> Permite realizar operaciones CRUD
 
-    // Buscar vehiculo por marca
-    List<Vehicle> findByBrand(String brand);
-    // Buscar vehiculo si es nuevo o no
     List<Vehicle> findByIsNew (boolean isNew);
+
+    List<Vehicle> findByBrandIgnoreCaseAndIsNew(String brand, boolean isNew);
+
+    List<Vehicle> findByBrandIgnoreCase(String brand);
 
 }

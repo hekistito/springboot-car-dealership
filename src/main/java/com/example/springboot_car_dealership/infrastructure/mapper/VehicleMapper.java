@@ -3,6 +3,8 @@ package com.example.springboot_car_dealership.infrastructure.mapper;
 import com.example.springboot_car_dealership.domain.Vehicle;
 import com.example.springboot_car_dealership.infrastructure.dto.VehicleDTO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 
 import java.util.List;
 
