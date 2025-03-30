@@ -26,46 +26,51 @@ public class VehicleService {
     }
 
     public List<VehicleDTO> getAllVehicles() {
+
         List<Vehicle> vehicles = vehicleRepository.findAll();
+        vehiclesListIsEmpty(vehicles);
         return vehicles.stream().map(vehicleMapper::toDTO).collect(Collectors.toList());
+
     }
 
     public Optional<VehicleDTO> getVehicleById(Long id) {
         return vehicleRepository.findById(id).map(vehicleMapper::toDTO);
     }
 
-    public List<VehicleDTO> searchVehicleByBrandAndState(String brand, Boolean isNew){
+    public List<VehicleDTO> getVehicleByBrandAndState(String brand, Boolean isNew){
+
         validateBrandAndState(brand, isNew);
+        List<Vehicle> vehicles = vehicleRepository.findByBrandIgnoreCaseAndIsNew(brand, isNew);
+        validateExistBrandAndState(vehicles);
+        return vehicleMapper.toDTOList(vehicles);
 
-        List<Vehicle> results = vehicleRepository.findByBrandIgnoreCaseAndIsNew(brand, isNew);
+    }
 
-        return vehicleMapper.toDTOList(results);
+    public List<VehicleDTO> getVehiclesByBrand(String brand) {
+
+        List<Vehicle> vehicles = vehicleRepository.findByBrandIgnoreCase(brand);
+        EmptyVehiclesByBrand(vehicles, brand);
+        return vehicles.stream()
+                .map(vehicleMapper::toDTO)
+                .collect(Collectors.toList());
+
     }
 
     public VehicleDTO saveVehicle(VehicleDTO vehicleDTO) {
 
         validateDuplicateLicensePlate(vehicleDTO.getLicensePlate()); //Valida patentes duplicadas
-
         Vehicle vehicle = vehicleMapper.toEntity(vehicleDTO); //Transforma de Vehiculo DTO a Vehiculo Entity JPA
-
         validateKilometers(vehicle); //Valida los kilometros
-
         validateVehicleState(vehicle); //Valida el estado del auto dependiendo de los kilometros
-
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDTO(savedVehicle);
+
     }
 
     public void deleteVehicle(Long id) {
+
+        validateExistId(id);
         vehicleRepository.deleteById(id);
-    }
-
-    public List<VehicleDTO> getVehiclesByBrand(String brand) {
-        List<Vehicle> vehicles = vehicleRepository.findByBrandIgnoreCase(brand);
-
-        return vehicles.stream()
-                .map(vehicleMapper::toDTO)
-                .collect(Collectors.toList());
     }
 
     //Funciones SRP
@@ -100,4 +105,29 @@ public class VehicleService {
             throw new InvalidVehicleStateException("Debe indicar si el vehículo es nuevo o usado.");
         }
     }
+
+    public void vehiclesListIsEmpty(List<Vehicle> vehicles){
+        if (vehicles.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron vehículos.");
+        }
+    }
+
+    private void validateExistBrandAndState(List<Vehicle> vehicles) {
+        if (vehicles.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron vehiculos con los filtros proporcionados.");
+        }
+    }
+
+    private void EmptyVehiclesByBrand(List<Vehicle> vehicles, String brand) {
+        if (vehicles.isEmpty()){
+            throw new ResourceNotFoundException("No se encontraron vehiculos de la marca " + brand);
+        }
+    }
+
+    private void validateExistId(Long id) {
+        if (vehicleRepository.findById(id).isEmpty()) {
+            throw new ResourceNotFoundException("No se pudo borrar. vehiculo con id " + id + " no existe");
+        }
+    }
+
 }

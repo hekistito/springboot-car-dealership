@@ -26,20 +26,20 @@ public class VehicleController {
 
     @GetMapping("/getVehicles")
     public ResponseEntity<List<VehicleDTO>> getAllVehicles() {
-        List<VehicleDTO> vehicles = vehicleService.getAllVehicles();
-        if (vehicles.isEmpty()){
-            throw new ResourceNotFoundException("No se encontraron vehiculos.");
-        }
 
+        List<VehicleDTO> vehicles = vehicleService.getAllVehicles();
         return ResponseEntity.ok(vehicles);
+
     }
 
     @GetMapping("/getVehicle/{id}")
     public ResponseEntity<VehicleDTO> getVehicleById(@PathVariable Long id) {
+
         Optional<VehicleDTO> vehicle = vehicleService.getVehicleById(id);
         return ResponseEntity.ok(
                 vehicle.orElseThrow(() -> new ResourceNotFoundException("Vehiculo con id " + id + " no existe."))
         );
+
     }
 
     @GetMapping("/search")
@@ -47,39 +47,32 @@ public class VehicleController {
             @RequestParam(required = true) String brand,
             @RequestParam(required = true) @NotNull Boolean isNew){
 
-
-        List<VehicleDTO> vehicles = vehicleService.searchVehicleByBrandAndState(brand, isNew);
-
-        if (vehicles.isEmpty()) {
-            throw new ResourceNotFoundException("No se encontraron vehiculos con los filtros proporcionados.");
-        }
-
+        List<VehicleDTO> vehicles = vehicleService.getVehicleByBrandAndState(brand, isNew);
         return ResponseEntity.ok(vehicles);
+
     }
 
     @GetMapping("/getVehicleByBrand/{brand}")
     public ResponseEntity<List<VehicleDTO>> getVehiclesByBrand(@PathVariable String brand){
+
         List<VehicleDTO> vehicles = vehicleService.getVehiclesByBrand(brand);
-
-        if (vehicles.isEmpty()){
-            throw new ResourceNotFoundException("No se encontraron vehiculos de la marca " + brand);
-        }
-
         return ResponseEntity.ok(vehicles);
+
     }
 
     @PostMapping("/create")
     public ResponseEntity<VehicleDTO> createVehicle(@Valid @RequestBody VehicleDTO vehicleDTO) {
+
         VehicleDTO savedVehicle = vehicleService.saveVehicle(vehicleDTO);
         return new ResponseEntity<>(savedVehicle, HttpStatus.CREATED);
+
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
-        if (vehicleService.getVehicleById(id).isEmpty()) {
-            throw new ResourceNotFoundException("No se pudo borrar. vehiculo con id " + id + " no existe");
-        }
+
         vehicleService.deleteVehicle(id);
         return ResponseEntity.noContent().build();
+
     }
 }
