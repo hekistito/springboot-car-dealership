@@ -52,4 +52,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(InvalidVehicleStateException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidVehicleState(InvalidVehicleStateException ex){
+        Map<String, String> error = new HashMap<>(); //Este Map representará el cuerpo de la respuesta. Es decir, lo que se va a convertir en JSON en el frontend.
+        error.put("error", ex.getMessage()); //La clave es "error" (lo que se verá como el nombre del campo en el JSON) y ex.getMessage() sera el mensaje que yo lance desde el service
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
 }

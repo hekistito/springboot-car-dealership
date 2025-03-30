@@ -3,6 +3,7 @@ package com.example.springboot_car_dealership.application;
 import com.example.springboot_car_dealership.domain.Vehicle;
 import com.example.springboot_car_dealership.infrastructure.dto.VehicleDTO;
 import com.example.springboot_car_dealership.infrastructure.exception.DuplicateResourceException;
+import com.example.springboot_car_dealership.infrastructure.exception.InvalidVehicleStateException;
 import com.example.springboot_car_dealership.infrastructure.exception.ResourceNotFoundException;
 import com.example.springboot_car_dealership.infrastructure.mapper.VehicleMapper;
 import com.example.springboot_car_dealership.infrastructure.repository.VehicleRepository;
@@ -54,8 +55,16 @@ public class VehicleService {
         if (existingVehicle.isPresent()) {
             throw new DuplicateResourceException("Ya existe un vehículo con la patente: " + vehicleDTO.getLicensePlate());
         }
-
         Vehicle vehicle = vehicleMapper.toEntity(vehicleDTO);
+        if (vehicle.getKilometers() < 0){
+            throw new InvalidVehicleStateException("Ingrese un kilometraje valido.");
+        }
+        if (vehicle.getKilometers() > 0 && vehicle.isNew()) {
+            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
+        }
+        if (vehicle.getKilometers() == 0 && !vehicle.isNew()) {
+            throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
+        }
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDTO(savedVehicle);
     }
