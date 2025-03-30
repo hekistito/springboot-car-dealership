@@ -5,8 +5,10 @@ import com.example.springboot_car_dealership.application.VehicleService;
 import com.example.springboot_car_dealership.infrastructure.dto.VehicleDTO;
 import com.example.springboot_car_dealership.infrastructure.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/vehicles")
+@Validated
 public class VehicleController {
     private final VehicleService vehicleService;
 
@@ -42,10 +45,10 @@ public class VehicleController {
     @GetMapping("/search")
     public ResponseEntity<List<VehicleDTO>> getVehiclesByBrandAndIsNew(
             @RequestParam(required = true) String brand,
-            @RequestParam(required = true) Boolean isNew){
+            @RequestParam(required = true) @NotNull Boolean isNew){
 
 
-        List<VehicleDTO> vehicles = vehicleService.searchVehicle(brand, isNew);
+        List<VehicleDTO> vehicles = vehicleService.searchVehicleByBrandAndState(brand, isNew);
 
         if (vehicles.isEmpty()) {
             throw new ResourceNotFoundException("No se encontraron vehiculos con los filtros proporcionados.");

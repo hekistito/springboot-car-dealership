@@ -3,12 +3,14 @@ package com.example.springboot_car_dealership.application;
 import com.example.springboot_car_dealership.domain.Vehicle;
 import com.example.springboot_car_dealership.infrastructure.dto.VehicleDTO;
 import com.example.springboot_car_dealership.infrastructure.exception.DuplicateResourceException;
+import com.example.springboot_car_dealership.infrastructure.exception.EmptyBrandException;
 import com.example.springboot_car_dealership.infrastructure.exception.InvalidVehicleStateException;
 import com.example.springboot_car_dealership.infrastructure.exception.ResourceNotFoundException;
 import com.example.springboot_car_dealership.infrastructure.mapper.VehicleMapper;
 import com.example.springboot_car_dealership.infrastructure.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,18 +34,10 @@ public class VehicleService {
         return vehicleRepository.findById(id).map(vehicleMapper::toDTO);
     }
 
-    public List<VehicleDTO> searchVehicle(String brand, Boolean isNew){
-        List<Vehicle> results;
+    public List<VehicleDTO> searchVehicleByBrandAndState(String brand, Boolean isNew){
+        validateBrandAndState(brand, isNew);
 
-        if (brand != null && isNew != null) {
-            results = vehicleRepository.findByBrandIgnoreCaseAndIsNew(brand, isNew);
-        } else if (brand != null) {
-            results = vehicleRepository.findByBrandIgnoreCase(brand);
-        } else if (isNew != null) {
-            results = vehicleRepository.findByIsNew(isNew);
-        } else {
-            results = vehicleRepository.findAll();
-        }
+        List<Vehicle> results = vehicleRepository.findByBrandIgnoreCaseAndIsNew(brand, isNew);
 
         return vehicleMapper.toDTOList(results);
     }
@@ -95,6 +89,15 @@ public class VehicleService {
 
         if (vehicle.getKilometers() == 0 && !vehicle.isNew()) {
             throw new InvalidVehicleStateException("Estado del vehículo no es coherente con el kilometraje.");
+        }
+    }
+
+    private void validateBrandAndState(String brand, Boolean isNew){
+        if (brand == null || brand.isEmpty()) {
+            throw new EmptyBrandException("Debe ingresar una marca de vehiculo");
+        }
+        if (isNew == null) {
+            throw new InvalidVehicleStateException("Debe indicar si el vehículo es nuevo o usado.");
         }
     }
 }
